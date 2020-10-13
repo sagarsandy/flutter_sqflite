@@ -1,10 +1,17 @@
 # flutter_sqflite
 
-A new Flutter application.
+A complete flutter sqlite example with sqflite
 
+Which covers
+
+- Sqflite: CRUD operation(commit:- c837cc2824ccf7cf54772825331d5923b303568c)
+- Sqflite: Migration()
+
+
+
+
+Flutter Info:
 ## Getting Started
-
-This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
 

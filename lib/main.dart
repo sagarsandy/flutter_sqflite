@@ -36,11 +36,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<List<Student>> students;
   TextEditingController nameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
+  TextEditingController bioController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   int currentUserId; // Used to determine current updating element for update
   String name;
   int age;
+  String bio;
   var dbHelper;
   bool isUpdating;
 
@@ -63,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   clearName() {
     nameController.text = '';
     ageController.text = '';
+    bioController.text = '';
   }
 
   // Function to validate input form
@@ -71,14 +74,14 @@ class _MyHomePageState extends State<MyHomePage> {
       formKey.currentState.save();
       if (isUpdating) {
         // Updating a record
-        Student stu = Student(currentUserId, name, age);
+        Student stu = Student(currentUserId, name, age, bio);
         dbHelper.updateStudent(stu);
         setState(() {
           isUpdating = false;
         });
       } else {
         // Inserting a new record
-        Student stud = Student(null, name, age);
+        Student stud = Student(null, name, age, bio);
         dbHelper.saveStudent(stud);
       }
       clearName();
@@ -95,8 +98,11 @@ class _MyHomePageState extends State<MyHomePage> {
           DataColumn(
             label: Text("NAME"),
           ),
+//          DataColumn(
+//            label: Text("AGE"),
+//          ),
           DataColumn(
-            label: Text("AGE"),
+            label: Text("BIO"),
           ),
           DataColumn(
             label: Text("EDIT"),
@@ -110,10 +116,13 @@ class _MyHomePageState extends State<MyHomePage> {
               (e) => DataRow(
                 cells: [
                   DataCell(
-                    Text(e.name),
+                    Text(e.name + "(" + e.age.toString() + ")"),
                   ),
+//                  DataCell(
+//                    Text(e.age.toString()),
+//                  ),
                   DataCell(
-                    Text(e.age.toString()),
+                    Text(e.bio == null ? "--" : e.bio),
                   ),
                   DataCell(
                     IconButton(
@@ -121,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () {
                         nameController.text = e.name;
                         ageController.text = e.age.toString();
+                        bioController.text = e.bio;
                         setState(() {
                           isUpdating = true;
                           currentUserId = e.id;
@@ -179,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
             TextFormField(
               controller: nameController,
               decoration: InputDecoration(
-                labelText: "Title",
+                labelText: "Name",
               ),
               validator: (val) => val.length == 0 ? "Enter Name" : null,
               onSaved: (val) => name = val,
@@ -192,6 +202,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               validator: (val) => val.length == 0 ? "Enter Age" : null,
               onSaved: (val) => age = int.parse(val),
+            ),
+            TextFormField(
+              controller: bioController,
+              decoration: InputDecoration(
+                labelText: "Bio",
+              ),
+              validator: (val) => val.length == 0 ? "Enter Bio" : null,
+              onSaved: (val) => bio = val,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
