@@ -9,24 +9,26 @@ Which covers
 - Sqflite: Working with FKs and relations 
 
 
-
-
 DBHelper.dart file changes as per the version
 
 Version one:  
     // Create tables(This is initial or first version)
-      void _createTables(Batch batch) {
-        batch.execute('DROP TABLE IF EXISTS student');
-        batch.execute('''
-                CREATE TABLE student (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name text not null,
-                  age integer not null
-                )
-            ''');
+    
+    
+        void _createTables(Batch batch) {
+            batch.execute('DROP TABLE IF EXISTS student');
+            batch.execute('''
+                    CREATE TABLE student (
+                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      name text not null,
+                      age integer not null
+                    )
+                ''');
       }
   
    // Create single instance of DB
+   
+    
     Future<Database> get db async {
       if (_db != null) {
         return _db;
@@ -36,6 +38,8 @@ Version one:
     }
   
   // Initializing DB
+  
+    
     initDb() async {
       io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, DB_NAME);
@@ -47,6 +51,8 @@ Version one:
     }
     
   // DB on create method implementation
+  
+    
       Future _onCreate(Database db, int version) async {
         print('DB on create method called');
         var batch = db.batch();
@@ -55,6 +61,8 @@ Version one:
       }
       
 While migrating to second version, we've added
+
+    
     // Second version of migration, if user doesn't have version one installed
       void _createSchemaTablesV2(Batch batch) {
         batch.execute('DROP TABLE IF EXISTS student');
@@ -69,6 +77,8 @@ While migrating to second version, we've added
       }
       
    // Update schema from version one to version two
+   
+    
     void _updateSchemaTablesFromV1toV2(Batch batch) {
       batch.execute('ALTER TABLE student ADD bio TEXT null');
     }
@@ -76,6 +86,8 @@ While migrating to second version, we've added
    And Modified
    
    // Initializing DB
+   
+    
      initDb() async {
        io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
        String path = join(documentsDirectory.path, DB_NAME);
@@ -88,6 +100,8 @@ While migrating to second version, we've added
      }
      
    // DB on create method implementation
+   
+    
        Future _onCreate(Database db, int version) async {
          print('DB on create method called');
          var batch = db.batch();
@@ -95,18 +109,31 @@ While migrating to second version, we've added
          await batch.commit();
        }
      
-   // DB on upgrade method implementation, this method is required from second version
-   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-     print('DB on update method called');
-     var batch = db.batch();
-     if (oldVersion == 1) {
-       _updateSchemaTablesFromV1toV2(batch);
-     }
-     await batch.commit();
-   }
+   // DB on upgrade method implementation
+      
+    
+    
+       Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+         print('DB on update method called');
+         var batch = db.batch();
+         if (oldVersion == 1) {
+           _updateSchemaTablesFromV1toV2(batch);
+         }
+         await batch.commit();
+       }
    
 While migrating to third version from second version, we've added
+// Setting up FOREIGN KEY constraints
+      
+    
+       
+       Future _onConfigure(Database db) async {
+         await db.execute('PRAGMA foreign_keys = ON');
+       }
     // Third version of migration, If user doesn't have version one and two
+       
+    
+       
       void _createSchemaTablesV3(Batch batch) {
         batch.execute('DROP TABLE IF EXISTS student');
         batch.execute('''
@@ -131,6 +158,9 @@ While migrating to third version from second version, we've added
       }
       
    // Update schema from version two to version three
+      
+    
+       
         void _updateSchemaTablesFromV2toV3(Batch batch) {
           batch.execute('DROP TABLE IF EXISTS school');
           batch.execute('''
@@ -148,6 +178,9 @@ While migrating to third version from second version, we've added
    And modified
    
    // Initializing DB
+      
+    
+       
      initDb() async {
        io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
        String path = join(documentsDirectory.path, DB_NAME);
@@ -159,12 +192,12 @@ While migrating to third version from second version, we've added
        return db;
      }
      
-   // Setting up FOREIGN KEY constraints
-       Future _onConfigure(Database db) async {
-         await db.execute('PRAGMA foreign_keys = ON');
-       }
+   
         
   // DB on create method implementation
+     
+    
+       
     Future _onCreate(Database db, int version) async {
       print('DB on create method called');
       var batch = db.batch();
@@ -172,7 +205,10 @@ While migrating to third version from second version, we've added
       await batch.commit();
     }
     
-  // DB on upgrade method implementation, this method is required from second version
+  // DB on upgrade method implementation
+     
+    
+       
     Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
       print('DB on update method called');
       var batch = db.batch();
