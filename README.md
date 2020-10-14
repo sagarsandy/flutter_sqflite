@@ -60,7 +60,7 @@ Version one:
         await batch.commit();
       }
       
-While migrating to second version, we've added
+While migrating to second version: Added
 
     
     // Second version of migration, if user doesn't have version one installed
@@ -122,17 +122,15 @@ While migrating to second version, we've added
          await batch.commit();
        }
    
-While migrating to third version from second version, we've added
+While migrating to third version from second version: Added
+
 // Setting up FOREIGN KEY constraints
-      
-    
        
        Future _onConfigure(Database db) async {
          await db.execute('PRAGMA foreign_keys = ON');
        }
-    // Third version of migration, If user doesn't have version one and two
        
-    
+    // Third version of migration, If user doesn't have version one and two
        
       void _createSchemaTablesV3(Batch batch) {
         batch.execute('DROP TABLE IF EXISTS student');
