@@ -11,6 +11,7 @@ class Student {
     this.bio,
   );
 
+  // Creating a map object to insert/update in database
   Map<dynamic, dynamic> toMap() {
     var map = <String, dynamic>{
       'id': id,
@@ -22,6 +23,7 @@ class Student {
     return map;
   }
 
+  // Creating student object from database map object
   Student.fromMap(Map<String, dynamic> map) {
     id = map['id'];
     name = map['name'];

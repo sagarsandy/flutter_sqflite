@@ -1,48 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_sqflite/StudentDetails.dart';
 import 'package:flutter_sqflite/model/DBHelper.dart';
+import 'package:flutter_sqflite/model/Notes.dart';
 import 'dart:async';
 import 'package:flutter_sqflite/model/Student.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class StudentDetails extends StatefulWidget {
+  final Student student;
+  StudentDetails(this.student);
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SQFlite',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'SQFlite Complete Example'),
-    );
-  }
+  _StudentDetailsState createState() => _StudentDetailsState();
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  Future<List<Student>> students;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController ageController = TextEditingController();
-  TextEditingController bioController = TextEditingController();
+class _StudentDetailsState extends State<StudentDetails> {
+  Future<List<Notes>> studentNotes;
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  int currentUserId; // Used to determine current updating element for update
-  String name;
-  int age;
-  String bio;
+  int currentNotesId;
+  String title;
+  String description;
   var dbHelper;
   bool isUpdating;
 
@@ -57,15 +34,14 @@ class _MyHomePageState extends State<MyHomePage> {
   // Once the record is added, we will update the list with following function
   refreshList() {
     setState(() {
-      students = dbHelper.getStudents();
+      studentNotes = dbHelper.getNotesByStudent(widget.student.id);
     });
   }
 
   // Once the record is saved in DB, we are clearing textfield values
-  clearName() {
-    nameController.text = '';
-    ageController.text = '';
-    bioController.text = '';
+  clearForm() {
+    titleController.text = '';
+    descriptionController.text = '';
   }
 
   // Function to validate input form
@@ -74,23 +50,24 @@ class _MyHomePageState extends State<MyHomePage> {
       formKey.currentState.save();
       if (isUpdating) {
         // Updating a record
-        Student stu = Student(currentUserId, name, age, bio);
-        dbHelper.updateStudent(stu);
+        Notes note =
+            Notes(currentNotesId, title, description, widget.student.id);
+        dbHelper.updateNotes(note);
         setState(() {
           isUpdating = false;
         });
       } else {
         // Inserting a new record
-        Student stud = Student(null, name, age, bio);
-        dbHelper.saveStudent(stud);
+        Notes note = Notes(null, title, description, widget.student.id);
+        dbHelper.saveNotes(note);
       }
-      clearName();
+      clearForm();
       refreshList();
     }
   }
 
   // List of students with rows and columns widget
-  SingleChildScrollView dataTable(List<Student> students) {
+  SingleChildScrollView dataTable(List<Notes> studentNotes) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: DataTable(
@@ -98,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
           DataColumn(
             label: Expanded(
               child: Text(
-                "NAME",
+                "Title",
                 textAlign: TextAlign.left,
               ),
             ),
@@ -112,12 +89,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ],
-        rows: students
+        rows: studentNotes
             .map(
               (e) => DataRow(
                 cells: [
                   DataCell(
-                    Text(e.name + "(" + e.age.toString() + ")"),
+                    Text(e.title),
                   ),
                   DataCell(
                     Row(
@@ -125,25 +102,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         IconButton(
                           icon: Icon(Icons.mode_edit),
                           onPressed: () {
-                            nameController.text = e.name;
-                            ageController.text = e.age.toString();
-                            bioController.text = e.bio;
+                            titleController.text = e.title;
+                            descriptionController.text = e.description;
                             setState(() {
                               isUpdating = true;
-                              currentUserId = e.id;
+                              currentNotesId = e.id;
                             });
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.info_outline),
-                          onPressed: () {
-                            navigateToStudentDetailsScreen(context, e);
                           },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete_outline),
                           onPressed: () {
-                            dbHelper.deleteStudent(e.id);
+                            dbHelper.deleteNotes(e.id);
                             refreshList();
                           },
                         ),
@@ -162,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
   list() {
     return Expanded(
       child: FutureBuilder(
-        future: students,
+        future: studentNotes,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return dataTable(snapshot.data);
@@ -190,29 +160,20 @@ class _MyHomePageState extends State<MyHomePage> {
           verticalDirection: VerticalDirection.down,
           children: [
             TextFormField(
-              controller: nameController,
+              controller: titleController,
               decoration: InputDecoration(
-                labelText: "Name",
+                labelText: "Title",
               ),
-              validator: (val) => val.length == 0 ? "Enter Name" : null,
-              onSaved: (val) => name = val,
+              validator: (val) => val.length == 0 ? "Enter Title" : null,
+              onSaved: (val) => title = val,
             ),
             TextFormField(
-              controller: ageController,
-              keyboardType: TextInputType.number,
+              controller: descriptionController,
               decoration: InputDecoration(
-                labelText: "Age",
+                labelText: "Description",
               ),
-              validator: (val) => val.length == 0 ? "Enter Age" : null,
-              onSaved: (val) => age = int.parse(val),
-            ),
-            TextFormField(
-              controller: bioController,
-              decoration: InputDecoration(
-                labelText: "Bio",
-              ),
-              validator: (val) => val.length == 0 ? "Enter Bio" : null,
-              onSaved: (val) => bio = val,
+              validator: (val) => val.length == 0 ? "Enter notes" : null,
+              onSaved: (val) => description = val,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -226,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     setState(() {
                       isUpdating = false;
                     });
-                    clearName();
+                    clearForm();
                   },
                   child: Text('CANCEL'),
                 ),
@@ -239,37 +200,63 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    dbHelper.close();
-  }
-
-  // Navigation to student details screen
-  void navigateToStudentDetailsScreen(context, Student student) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => StudentDetails(student),
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Student Details"),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          verticalDirection: VerticalDirection.down,
-          children: <Widget>[
-            form(),
-            list(),
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Container(
+              width: double.infinity,
+              height: 550,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Details : ",
+                    style: TextStyle(fontSize: 23),
+                  ),
+                  SizedBox(
+                    height: 7,
+                  ),
+                  Text(
+                    "  Name : " + widget.student.name,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    "  Age : " + widget.student.age.toString(),
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    "  Bio : " + widget.student.bio,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    "Notes: ",
+                    style: TextStyle(fontSize: 22),
+                  ),
+                  form(),
+                  list(),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }
